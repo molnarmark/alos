@@ -23,6 +23,7 @@
     "prettier": "^2.1.2"
   },
   "dependencies": {
+    "chalk": "^4.1.0",
     "ipfix": "^1.0.1"
   }
 }

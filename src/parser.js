@@ -1,10 +1,12 @@
 const ipfix = require('ipfix');
+const { error } = require('./reporter');
 
 class Parser {
   constructor(tokens) {
     this.tokens = tokens;
     this.pos = 0;
     this.current = this.tokens[this.pos];
+    this.previous = null;
   }
 
   parse() {
@@ -93,19 +95,7 @@ class Parser {
     this.expect('ID', 'let');
     const name = this.expect('ID').value;
     this.expect('PUNC', '=');
-    let body = [];
-    while (this.current.value !== ';') {
-      body.push(this.parseExpr());
-    }
-
-    // handling binary ops
-    if (body.find((x) => x.type === 'Op')) {
-      body = { type: 'BinaryExpr', value: ipfix.transform(body.map((x) => x.value).join('')) };
-    }
-
-    if (body.length === 1) {
-      body = body[0];
-    }
+    const body = this.getBody();
 
     this.expect('PUNC', ';');
 
@@ -115,19 +105,8 @@ class Parser {
   parseVariableAssignment() {
     const name = this.expect('ID').value;
     this.expect('PUNC', '=');
-    let body = [];
-    while (this.current.value !== ';') {
-      body.push(this.parseExpr());
-    }
+    const body = this.getBody();
 
-    // handling binary ops
-    if (body.find((x) => x.type === 'Op')) {
-      body = { type: 'BinaryExpr', value: ipfix.transform(body.map((x) => x.value).join('')) };
-    }
-
-    if (body.length === 1) {
-      body = body[0];
-    }
     this.expect('PUNC', ';');
 
     return { type: 'VarAssignment', name, value: body };
@@ -137,19 +116,8 @@ class Parser {
     this.expect('ID', 'fixed');
     const name = this.expect('ID').value;
     this.expect('PUNC', '=');
-    let body = [];
-    while (this.current.value !== ';') {
-      body.push(this.parseExpr());
-    }
+    const body = this.getBody();
 
-    // handling binary ops
-    if (body.find((x) => x.type === 'Op')) {
-      body = { type: 'BinaryExpr', value: ipfix.transform(body.map((x) => x.value).join('')) };
-    }
-
-    if (body.length === 1) {
-      body = body[0];
-    }
     this.expect('PUNC', ';');
 
     return { type: 'FixedVarDef', name, value: body };
@@ -158,13 +126,21 @@ class Parser {
   parseFunctionCall(asExpr = false) {
     const name = this.expect('ID').value;
     this.expect('PUNC', '(');
-    const params = this.parseExpr();
+    let params = [];
+
+    while (this.current.value !== ')') {
+      const expr = this.parseExpr();
+      if (expr.value !== ',') {
+        params.push(expr);
+      }
+    }
+
     this.expect('PUNC', ')');
     if (!asExpr) {
       this.expect('PUNC', ';');
     }
 
-    return { type: 'FuncCall', name, value: params };
+    return { type: 'FuncCall', name, value: { type: 'ArgList', value: params } };
   }
 
   parseFunctionDef() {
@@ -178,7 +154,7 @@ class Parser {
     const body = this.parseStatements();
     this.expect('PUNC', '}');
 
-    return { type: 'FuncDef', name, value: body };
+    return { type: 'FuncDef', name, value: { type: 'Block', value: body } };
   }
 
   parseExpr() {
@@ -215,6 +191,24 @@ class Parser {
     return { type: 'GroupedExpr', value: exprs };
   }
 
+  getBody() {
+    let body = [];
+    while (this.current.value !== ';') {
+      const expr = this.parseExpr();
+      body.push(expr);
+    }
+    // handling binary ops
+    if (body.find((x) => x.type === 'Op')) {
+      body = { type: 'BinaryExpr', value: ipfix.transform(body.map((x) => x.value).join('')) };
+    }
+
+    if (body.length === 1) {
+      body = body[0];
+    }
+
+    return body;
+  }
+
   expect(tokenType, tokenValue) {
     if (tokenValue) {
       return this.expect_with(tokenType, tokenValue);
@@ -239,6 +233,7 @@ class Parser {
     const current = this.current;
     this.pos++;
     this.current = this.tokens[this.pos];
+    this.previous = this.tokens[this.pos - 1];
     return current;
   }
 
@@ -247,10 +242,9 @@ class Parser {
   }
 
   unexpectedError(tokenValue) {
-    console.log(
+    error(
       `Unexpected token at line ${this.current.line} col ${this.current.col}, got '${this.current.value}', expected '${tokenValue}'`
     );
-    process.exit(0);
   }
 }
 

@@ -1,6 +1,7 @@
 const ipfix = require('ipfix');
 
 const Builtins = require('./builtins');
+const { error } = require('./reporter');
 
 class Visitor {
   constructor() {
@@ -19,6 +20,8 @@ class Visitor {
         return this.visitFixedVarDef(astNode);
       case 'Variable':
         return this.visitVar(astNode);
+      case 'FuncDef':
+        return this.visitFunctionDef(astNode);
       case 'FuncCall':
         return this.visitFunctionCall(astNode);
       case 'String':
@@ -27,16 +30,23 @@ class Visitor {
         return this.visitNumber(astNode);
       case 'BinaryExpr':
         return this.visitBinaryExpr(astNode);
+      case 'ArgList':
+        return this.visitArgList(astNode);
       case 'TopLevel':
         return this.visitTopLevel(astNode);
     }
 
-    console.log('Err');
-    process.exit(0);
+    error(`Unable to handle AST Node of type: ${astNode.type}`);
   }
 
   visitTopLevel(astNode) {
     for (let child of astNode.children) {
+      this.visit(child);
+    }
+  }
+
+  visitArgList(astNode) {
+    for (let child of astNode.value) {
       this.visit(child);
     }
   }
@@ -61,7 +71,7 @@ class Visitor {
 
   visitVarAssignment(astNode) {
     if (this.scope[astNode.name].fixed === true) {
-      throw new Error(`Assignment to fixed variable: ${astNode.name}`);
+      error(`Assignment to fixed variable: ${astNode.name}`);
     }
     this.scope[astNode.name].value = this.visit(astNode.value);
   }
@@ -71,9 +81,11 @@ class Visitor {
   }
 
   visitFunctionCall(astNode) {
-    const arg = this.visit(astNode.value);
+    const arg = astNode.value.value.map((x) => this.visit(x));
     Builtins[astNode.name](arg);
   }
+
+  visitFunctionDef(astNode) {}
 
   visitString(astNode) {
     return astNode.value;

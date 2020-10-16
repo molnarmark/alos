@@ -78,6 +78,7 @@ class Lexer {
     const nextChar = this.source.charAt(this.pos);
     if (nextChar === '\n') {
       this.line++;
+      this.col = 1;
     } else {
       this.col++;
     }

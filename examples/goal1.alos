@@ -1,6 +1,5 @@
-let calc = 15 + 20 * 2 % 2 ^ 45;
-let name = "Mark";
+let myMessage = "Random text to print..";
+let randomCalculation = 5 * 10 / 2;
 
-print("Calculated value: ");
-println(calc);
-println(name);
+println(myMessage);
+println("Calc: ", randomCalculation);
