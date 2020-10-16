@@ -70,6 +70,11 @@ class Parser {
         if (this.current.value === '@') {
           return this.parseLoad();
         }
+
+        // blocks
+        if (this.current.value === '{') {
+          return this.parseBlock();
+        }
       }
     }
   }
@@ -155,6 +160,14 @@ class Parser {
     this.expect('PUNC', '}');
 
     return { type: 'FuncDef', name, value: { type: 'Block', value: body } };
+  }
+
+  parseBlock() {
+    this.expect('PUNC', '{');
+    const body = this.parseStatements();
+    this.expect('PUNC', '}');
+
+    return { type: 'Block', value: body };
   }
 
   parseExpr() {

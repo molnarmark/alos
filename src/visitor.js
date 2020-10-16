@@ -32,6 +32,8 @@ class Visitor {
         return this.visitBinaryExpr(astNode);
       case 'ArgList':
         return this.visitArgList(astNode);
+      case 'Block':
+        return this.visitBlock(astNode);
       case 'TopLevel':
         return this.visitTopLevel(astNode);
     }
@@ -41,6 +43,12 @@ class Visitor {
 
   visitTopLevel(astNode) {
     for (let child of astNode.children) {
+      this.visit(child);
+    }
+  }
+
+  visitBlock(astNode) {
+    for (let child of astNode.value) {
       this.visit(child);
     }
   }

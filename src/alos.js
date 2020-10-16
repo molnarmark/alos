@@ -15,8 +15,8 @@ function main() {
 
   const parser = new Parser(tokens);
   const ast = parser.parse();
-  // console.log(util.inspect(ast, { colors: true, depth: 999 }));
-  // console.log('\n------------------\n');
+  console.log(util.inspect(ast, { colors: true, depth: 999 }));
+  console.log('\n------------------\n');
   const visitor = new Visitor();
   visitor.visit(ast);
 }
