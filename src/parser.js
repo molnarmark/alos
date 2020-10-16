@@ -7,61 +7,61 @@ class Parser {
 
   parse() {
     const topLevelNode = { type: 'TopLevel', children: [] };
-    const firstStatement = this.parse_statement();
+    const firstStatement = this.parseStatement();
     topLevelNode.children.push(firstStatement);
 
     // Lets parse statements
     while (this.current.type !== 'EOF') {
-      const astNode = this.parse_statement();
+      const astNode = this.parseStatement();
       topLevelNode.children.push(astNode);
     }
 
     return topLevelNode;
   }
 
-  parse_statements() {
+  parseStatements() {
     const statements = [];
     while (this.current.type !== 'PUNC' && this.current.value !== '}') {
-      const statement = this.parse_statement();
+      const statement = this.parseStatement();
       statements.push(statement);
     }
 
     return statements;
   }
 
-  parse_statement() {
+  parseStatement() {
     switch (this.current.type) {
       case 'ID': {
         // variable definition
         if (this.current.value === 'let') {
-          return this.parse_variable_definition();
+          return this.parseVariableDef();
         }
 
         // function call
         if (this.peek().value === '(') {
-          return this.parse_function_call();
+          return this.parseFunctionCall();
         }
 
         // function definition
         if (this.current.value === 'fun') {
-          return this.parse_function_definition();
+          return this.parseFunctionDef();
         }
 
         // return statement
         if (this.current.value === 'return') {
-          return this.parse_return();
+          return this.parseReturn();
         }
       }
       case 'PUNC': {
         // load
         if (this.current.value === '@') {
-          return this.parse_load();
+          return this.parseLoad();
         }
       }
     }
   }
 
-  parse_load() {
+  parseLoad() {
     this.expect('PUNC', '@');
     this.expect('ID', 'load');
     const path = this.expect('STRING').value;
@@ -70,28 +70,28 @@ class Parser {
     return { type: 'LoadStmt', value: path };
   }
 
-  parse_return() {
+  parseReturn() {
     this.expect('ID', 'return');
-    const expr = this.parse_expr();
+    const expr = this.parseExpr();
     this.expect('PUNC', ';');
 
     return { type: 'ReturnStmt', value: expr };
   }
 
-  parse_variable_definition() {
+  parseVariableDef() {
     this.expect('ID', 'let');
     const name = this.expect('ID').value;
     this.expect('PUNC', '=');
-    const body = this.parse_expr();
+    const body = this.parseExpr();
     this.expect('PUNC', ';');
 
     return { type: 'VarDef', name, body };
   }
 
-  parse_function_call(asExpr = false) {
+  parseFunctionCall(asExpr = false) {
     const name = this.expect('ID').value;
     this.expect('PUNC', '(');
-    const params = this.parse_expr();
+    const params = this.parseExpr();
     this.expect('PUNC', ')');
     if (!asExpr) {
       this.expect('PUNC', ';');
@@ -100,7 +100,7 @@ class Parser {
     return { type: 'FuncCall', name, params };
   }
 
-  parse_function_definition() {
+  parseFunctionDef() {
     this.expect('ID', 'fun');
     const name = this.expect('ID').value;
     this.expect('PUNC', '(');
@@ -108,13 +108,13 @@ class Parser {
     this.expect('PUNC', ')');
     this.expect('PUNC', '=>');
     this.expect('PUNC', '{');
-    const body = this.parse_statements();
+    const body = this.parseStatements();
     this.expect('PUNC', '}');
 
     return { type: 'FuncDef', name, body };
   }
 
-  parse_expr() {
+  parseExpr() {
     switch (this.current.type) {
       case 'STRING':
         return this.advance().value;
@@ -125,7 +125,7 @@ class Parser {
       case 'ID':
         // variable definitions for example can contain a function call
         if (this.peek().value === '(') {
-          return this.parse_function_call(true);
+          return this.parseFunctionCall(true);
         } else {
           return this.advance().value;
         }
@@ -140,7 +140,7 @@ class Parser {
     if (this.current.type === tokenType) {
       return this.advance();
     } else {
-      this.unexpected_token_errmsg(tokenType);
+      this.unexpectedError(tokenType);
     }
   }
 
@@ -148,7 +148,7 @@ class Parser {
     if (this.current.type === tokenType && this.current.value === tokenValue) {
       return this.advance();
     } else {
-      this.unexpected_token_errmsg(tokenValue);
+      this.unexpectedError(tokenValue);
     }
   }
 
@@ -163,7 +163,7 @@ class Parser {
     return this.tokens[this.pos + 1];
   }
 
-  unexpected_token_errmsg(tokenValue) {
+  unexpectedError(tokenValue) {
     throw new Error(
       `Unexpected token at ${this.current.line}:${this.current.col} => '${this.current.value}', expected '${tokenValue}'`
     );
