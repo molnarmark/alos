@@ -1,7 +1,17 @@
 @load "builtin/string";
 
+fun getMyName() => {
+  return "Mark";
+}
+
+fun getMyAge() => {
+  return 23;
+}
+
 fun main() => {
-  let name = "Mark";
-  let age = 22;
-  return name;
+  let name = getMyName();
+  let age = getMyAge();
+
+  println(name);
+  println(age);
 }

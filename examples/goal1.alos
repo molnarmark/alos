@@ -1,5 +1,6 @@
 // This is a oneline comment
 
-let name = "Mark";
+let name = "This is a variable read from 'name'.";
 
+println("Hello from Alos.");
 println(name);

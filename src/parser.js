@@ -85,7 +85,7 @@ class Parser {
     const body = this.parseExpr();
     this.expect('PUNC', ';');
 
-    return { type: 'VarDef', name, body };
+    return { type: 'VarDef', name, value: body };
   }
 
   parseFunctionCall(asExpr = false) {
@@ -97,7 +97,7 @@ class Parser {
       this.expect('PUNC', ';');
     }
 
-    return { type: 'FuncCall', name, params };
+    return { type: 'FuncCall', name, value: params };
   }
 
   parseFunctionDef() {
@@ -111,23 +111,23 @@ class Parser {
     const body = this.parseStatements();
     this.expect('PUNC', '}');
 
-    return { type: 'FuncDef', name, body };
+    return { type: 'FuncDef', name, value: body };
   }
 
   parseExpr() {
     switch (this.current.type) {
       case 'STRING':
-        return this.advance().value;
+        return { type: 'String', value: this.advance().value };
 
       case 'NUMBER':
-        return parseFloat(this.advance().value);
+        return { type: 'Number', value: parseFloat(this.advance().value) };
 
       case 'ID':
         // variable definitions for example can contain a function call
         if (this.peek().value === '(') {
           return this.parseFunctionCall(true);
         } else {
-          return this.advance().value;
+          return { type: 'Variable', value: this.advance().value };
         }
     }
   }
