@@ -28,6 +28,7 @@ class Lexer {
         case '}':
         case ';':
         case ',':
+        case '@':
           this.tokens.push({ type: 'PUNC', value: current, line: this.line, col: this.col });
           continue;
         case '=':

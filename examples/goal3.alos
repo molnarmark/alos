@@ -1,4 +1,4 @@
-fun main(name) => {
+fun main() => {
   let name = "Mark";
   println(name);
 }

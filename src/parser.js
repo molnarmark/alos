@@ -6,12 +6,7 @@ class Parser {
   }
 
   parse() {
-    return this.parse_statements();
-  }
-
-  parse_statements() {
     const topLevelNode = { type: 'TopLevel', children: [] };
-
     const firstStatement = this.parse_statement();
     topLevelNode.children.push(firstStatement);
 
@@ -22,6 +17,16 @@ class Parser {
     }
 
     return topLevelNode;
+  }
+
+  parse_statements() {
+    const statements = [];
+    while (this.current.type !== 'PUNC' && this.current.value !== '}') {
+      const statement = this.parse_statement();
+      statements.push(statement);
+    }
+
+    return statements;
   }
 
   parse_statement() {
@@ -36,8 +41,41 @@ class Parser {
         if (this.peek().value === '(') {
           return this.parse_function_call();
         }
+
+        // function definition
+        if (this.current.value === 'fun') {
+          return this.parse_function_definition();
+        }
+
+        // return statement
+        if (this.current.value === 'return') {
+          return this.parse_return();
+        }
+      }
+      case 'PUNC': {
+        // load
+        if (this.current.value === '@') {
+          return this.parse_load();
+        }
       }
     }
+  }
+
+  parse_load() {
+    this.expect('PUNC', '@');
+    this.expect('ID', 'load');
+    const path = this.expect('STRING').value;
+    this.expect('PUNC', ';');
+
+    return { type: 'LoadStmt', value: path };
+  }
+
+  parse_return() {
+    this.expect('ID', 'return');
+    const expr = this.parse_expr();
+    this.expect('PUNC', ';');
+
+    return { type: 'ReturnStmt', value: expr };
   }
 
   parse_variable_definition() {
@@ -60,6 +98,20 @@ class Parser {
     }
 
     return { type: 'FuncCall', name, params };
+  }
+
+  parse_function_definition() {
+    this.expect('ID', 'fun');
+    const name = this.expect('ID').value;
+    this.expect('PUNC', '(');
+    // TODO parse function args
+    this.expect('PUNC', ')');
+    this.expect('PUNC', '=>');
+    this.expect('PUNC', '{');
+    const body = this.parse_statements();
+    this.expect('PUNC', '}');
+
+    return { type: 'FuncDef', name, body };
   }
 
   parse_expr() {

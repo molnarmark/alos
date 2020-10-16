@@ -1,9 +1,7 @@
-@load "string";
+@load "builtin/string";
 
-fun main(argv) => {
-  fixed age = 22;
+fun main() => {
   let name = "Mark";
-  println(name, age);
-
+  let age = 22;
   return name;
 }

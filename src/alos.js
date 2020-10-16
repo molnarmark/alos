@@ -4,7 +4,7 @@ const Parser = require('./parser');
 const util = require('util');
 
 function main() {
-  let testFile = readFileSync('./examples/goal1.alos').toString();
+  let testFile = readFileSync('./examples/goal4.alos').toString();
 
   // Removing comments from file
   testFile = testFile.replace(/\/\/.*?\n/g, '');
