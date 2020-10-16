@@ -1,5 +1,0 @@
-let myMessage = "Random text to print..";
-let randomCalculation = 5 * 10 / 2;
-
-println(myMessage);
-println("Calc: ", randomCalculation);

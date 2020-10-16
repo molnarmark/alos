@@ -1,0 +1,14 @@
+let name = "Test name";
+name = "Still a test name";
+
+let randomInt = "Test int";
+randomInt = "Still a test int";
+
+// Fixed values
+
+fixed fixedName = "Fixed name";
+fixedName = "Cant change";
+
+fixed fixedInt = "Fixed int";
+fixedInt = "Cant change";
+
