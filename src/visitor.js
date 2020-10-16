@@ -1,3 +1,7 @@
+const ipfix = require('ipfix');
+
+const Builtins = require('./builtins');
+
 class Visitor {
   constructor() {
     // temporary scope
@@ -9,6 +13,10 @@ class Visitor {
     switch (astNode.type) {
       case 'VarDef':
         return this.visitVarDef(astNode);
+      case 'VarAssignment':
+        return this.visitVarAssignment(astNode);
+      case 'FixedVarDef':
+        return this.visitFixedVarDef(astNode);
       case 'Variable':
         return this.visitVar(astNode);
       case 'FuncCall':
@@ -17,6 +25,8 @@ class Visitor {
         return this.visitString(astNode);
       case 'Number':
         return this.visitNumber(astNode);
+      case 'BinaryExpr':
+        return this.visitBinaryExpr(astNode);
       case 'TopLevel':
         return this.visitTopLevel(astNode);
     }
@@ -31,19 +41,38 @@ class Visitor {
     }
   }
 
+  visitBinaryExpr(astNode) {
+    return ipfix.calculate(astNode.value);
+  }
+
   visitVarDef(astNode) {
-    this.scope[astNode.name] = this.visit(astNode.value);
+    this.scope[astNode.name] = {
+      value: this.visit(astNode.value),
+      fixed: false,
+    };
+  }
+
+  visitFixedVarDef(astNode) {
+    this.scope[astNode.name] = {
+      value: this.visit(astNode.value),
+      fixed: true,
+    };
+  }
+
+  visitVarAssignment(astNode) {
+    if (this.scope[astNode.name].fixed === true) {
+      throw new Error(`Assignment to fixed variable: ${astNode.name}`);
+    }
+    this.scope[astNode.name].value = this.visit(astNode.value);
   }
 
   visitVar(astNode) {
-    return this.scope[astNode.value];
+    return this.scope[astNode.value].value;
   }
 
   visitFunctionCall(astNode) {
-    if (astNode.name === 'println') {
-      const printWhat = this.visit(astNode.value);
-      console.log(printWhat);
-    }
+    const arg = this.visit(astNode.value);
+    Builtins[astNode.name](arg);
   }
 
   visitString(astNode) {

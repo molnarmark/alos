@@ -21,5 +21,8 @@
   "homepage": "https://github.com/molnarmark/alos#readme",
   "devDependencies": {
     "prettier": "^2.1.2"
+  },
+  "dependencies": {
+    "ipfix": "^1.0.1"
   }
 }

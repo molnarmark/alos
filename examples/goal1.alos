@@ -1,6 +1,6 @@
-// This is a oneline comment
+let calc = 15 + 20 * 2 % 2 ^ 45;
+let name = "Mark";
 
-let name = "This is a variable read from 'name'.";
-
-println("Hello from Alos.");
+print("Calculated value: ");
+println(calc);
 println(name);

@@ -1,3 +1,5 @@
+const ipfix = require('ipfix');
+
 class Parser {
   constructor(tokens) {
     this.tokens = tokens;
@@ -37,6 +39,11 @@ class Parser {
           return this.parseVariableDef();
         }
 
+        // fixed variable definition
+        if (this.current.value === 'fixed') {
+          return this.parseFixedVariableDef();
+        }
+
         // function call
         if (this.peek().value === '(') {
           return this.parseFunctionCall();
@@ -50,6 +57,10 @@ class Parser {
         // return statement
         if (this.current.value === 'return') {
           return this.parseReturn();
+        }
+
+        if (this.peek().value === '=') {
+          return this.parseVariableAssignment();
         }
       }
       case 'PUNC': {
@@ -82,10 +93,66 @@ class Parser {
     this.expect('ID', 'let');
     const name = this.expect('ID').value;
     this.expect('PUNC', '=');
-    const body = this.parseExpr();
+    let body = [];
+    while (this.current.value !== ';') {
+      body.push(this.parseExpr());
+    }
+
+    // handling binary ops
+    if (body.find((x) => x.type === 'Op')) {
+      body = { type: 'BinaryExpr', value: ipfix.transform(body.map((x) => x.value).join('')) };
+    }
+
+    if (body.length === 1) {
+      body = body[0];
+    }
+
     this.expect('PUNC', ';');
 
     return { type: 'VarDef', name, value: body };
+  }
+
+  parseVariableAssignment() {
+    const name = this.expect('ID').value;
+    this.expect('PUNC', '=');
+    let body = [];
+    while (this.current.value !== ';') {
+      body.push(this.parseExpr());
+    }
+
+    // handling binary ops
+    if (body.find((x) => x.type === 'Op')) {
+      body = { type: 'BinaryExpr', value: ipfix.transform(body.map((x) => x.value).join('')) };
+    }
+
+    if (body.length === 1) {
+      body = body[0];
+    }
+    this.expect('PUNC', ';');
+
+    return { type: 'VarAssignment', name, value: body };
+  }
+
+  parseFixedVariableDef() {
+    this.expect('ID', 'fixed');
+    const name = this.expect('ID').value;
+    this.expect('PUNC', '=');
+    let body = [];
+    while (this.current.value !== ';') {
+      body.push(this.parseExpr());
+    }
+
+    // handling binary ops
+    if (body.find((x) => x.type === 'Op')) {
+      body = { type: 'BinaryExpr', value: ipfix.transform(body.map((x) => x.value).join('')) };
+    }
+
+    if (body.length === 1) {
+      body = body[0];
+    }
+    this.expect('PUNC', ';');
+
+    return { type: 'FixedVarDef', name, value: body };
   }
 
   parseFunctionCall(asExpr = false) {
@@ -116,8 +183,14 @@ class Parser {
 
   parseExpr() {
     switch (this.current.type) {
+      case 'PUNC':
+        if (this.current.value === '(') return this.parseGroupedExpr();
+
       case 'STRING':
         return { type: 'String', value: this.advance().value };
+
+      case 'OP':
+        return { type: 'Op', value: this.advance().value };
 
       case 'NUMBER':
         return { type: 'Number', value: parseFloat(this.advance().value) };
@@ -130,6 +203,16 @@ class Parser {
           return { type: 'Variable', value: this.advance().value };
         }
     }
+  }
+
+  parseGroupedExpr() {
+    this.expect('PUNC', '(');
+    const exprs = [];
+    while (this.current.value !== ')') {
+      exprs.push(this.parseExpr());
+    }
+    this.expect('PUNC', ')');
+    return { type: 'GroupedExpr', value: exprs };
   }
 
   expect(tokenType, tokenValue) {
@@ -164,9 +247,10 @@ class Parser {
   }
 
   unexpectedError(tokenValue) {
-    throw new Error(
-      `Unexpected token at ${this.current.line}:${this.current.col} => '${this.current.value}', expected '${tokenValue}'`
+    console.log(
+      `Unexpected token at line ${this.current.line} col ${this.current.col}, got '${this.current.value}', expected '${tokenValue}'`
     );
+    process.exit(0);
   }
 }
 
