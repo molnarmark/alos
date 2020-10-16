@@ -1,0 +1,4 @@
+fun main(name) => {
+  let name = "Mark";
+  println(name);
+}

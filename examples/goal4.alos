@@ -1,0 +1,9 @@
+@load "string";
+
+fun main(argv) => {
+  fixed age = 22;
+  let name = "Mark";
+  println(name, age);
+
+  return name;
+}
