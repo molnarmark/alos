@@ -192,17 +192,30 @@ class Parser {
   }
 
   parseFunctionDef() {
-    this.expect('ID', 'fun');
+    this.expect('ID', 'sub');
     const name = this.expect('ID').value;
     this.expect('PUNC', '(');
-    // TODO parse function args
-    this.expect('PUNC', ')');
-    this.expect('PUNC', '=>');
-    this.expect('PUNC', '{');
-    const body = this.parseStatements();
-    this.expect('PUNC', '}');
+    let args = [];
 
-    return { type: 'FuncDef', name, value: { type: 'Block', value: body } };
+    while (this.current.value !== ')') {
+      const expr = this.parseExpr();
+      if (expr) {
+        args.push(expr);
+      }
+    }
+
+    this.expect('PUNC', ')');
+    this.expect('PUNC', '->');
+    const isArrow = this.expect('PUNC', '{', true) ? false : true;
+    console.log(isArrow);
+    let body = isArrow ? this.parseExpr() : this.parseStatements();
+    this.expect('PUNC', '}', true);
+    if (isArrow) {
+      this.expect('PUNC', ';');
+      body = [{ type: 'ReturnStmt', value: body }];
+    }
+
+    return { type: 'FuncDef', name, args, value: { type: 'Block', value: body } };
   }
 
   parseBlock() {
@@ -287,23 +300,23 @@ class Parser {
     return ['(', ')', '<', '>', '{', '}', ';', ',', '@', '='].includes(char);
   }
 
-  expect(tokenType, tokenValue) {
+  expect(tokenType, tokenValue, optional = false) {
     if (tokenValue) {
-      return this.expect_with(tokenType, tokenValue);
+      return this.expect_with(tokenType, tokenValue, optional);
     }
 
     if (this.current.type === tokenType) {
       return this.advance();
     } else {
-      this.unexpectedError(tokenType);
+      return optional ? false : this.unexpectedError(tokenType);
     }
   }
 
-  expect_with(tokenType, tokenValue) {
+  expect_with(tokenType, tokenValue, optional = false) {
     if (this.current.type === tokenType && this.current.value === tokenValue) {
       return this.advance();
     } else {
-      this.unexpectedError(tokenValue);
+      return optional ? false : this.unexpectedError(tokenValue);
     }
   }
 

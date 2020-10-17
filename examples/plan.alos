@@ -7,10 +7,10 @@ let a = "Random string";
 fixed b = "Random string";
 
 # Builtins get called with @
-@println("Test", "Teszt2");
+@println(a, b);
 
-#sub something(a, b, c) -> {
-#  return 1;
-#}
+sub blockSub(a, b) -> {
+  return 1;
+}
 
-#sub something(a, b, c) -> 1;
+sub arrowSub(a, b) -> 1;

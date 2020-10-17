@@ -29,20 +29,20 @@ class Lexer {
         case ';':
         case ',':
         case '@':
-          this.tokens.push({ type: 'PUNC', value: current, line: this.line, col: this.col });
-          continue;
         case '=':
-          if (this.lookahead() === '>') {
-            this.tokens.push({ type: 'PUNC', value: '=>', line: this.line, col: this.col });
-            this.advance();
-          } else {
-            this.tokens.push({ type: 'PUNC', value: current, line: this.line, col: this.col });
-          }
+          this.tokens.push({ type: 'PUNC', value: current, line: this.line, col: this.col });
           continue;
 
         // Operators
         case '+':
         case '-':
+          if (this.lookahead() === '>') {
+            this.tokens.push({ type: 'PUNC', value: '->', line: this.line, col: this.col });
+            this.advance();
+          } else {
+            this.tokens.push({ type: 'OP', value: current, line: this.line, col: this.col });
+          }
+          continue;
         case '/':
         case '%':
         case '*':
