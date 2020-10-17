@@ -1,14 +1,3 @@
-let name = "Test name";
-name = "Still a test name";
+let name = 100 * 10;
 
-let randomInt = "Test int";
-randomInt = "Still a test int";
-
-// Fixed values
-
-fixed fixedName = "Fixed name";
-fixedName = "Cant change";
-
-fixed fixedInt = "Fixed int";
-fixedInt = "Cant change";
-
+println(name);

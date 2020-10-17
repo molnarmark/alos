@@ -1,6 +1,9 @@
 const ipfix = require('ipfix');
 const { error } = require('./reporter');
 
+const KEYWORDS = ['let', 'fixed'];
+const OPERATORS = ['+', '-', '/', '%'];
+
 class Parser {
   constructor(tokens) {
     this.tokens = tokens;
@@ -174,15 +177,17 @@ class Parser {
     switch (this.current.type) {
       case 'PUNC':
         if (this.current.value === '(') return this.parseGroupedExpr();
+        this.advance();
+        break;
 
       case 'STRING':
         return { type: 'String', value: this.advance().value };
 
-      case 'OP':
-        return { type: 'Op', value: this.advance().value };
-
       case 'NUMBER':
         return { type: 'Number', value: parseFloat(this.advance().value) };
+
+      case 'OP':
+        return { type: 'Op', value: this.advance().value };
 
       case 'ID':
         // variable definitions for example can contain a function call
@@ -205,10 +210,18 @@ class Parser {
   }
 
   getBody() {
-    let body = [];
-    while (this.current.value !== ';') {
-      const expr = this.parseExpr();
-      body.push(expr);
+    let body = [this.parseExpr()]; // parsing left by default
+    while (true) {
+      // TODO fix this if statement later
+      if (
+        this.isOperator(this.current.value) ||
+        (this.isExpr(this.current.type) && !this.isPunc(this.current.value))
+      ) {
+        const expr = this.parseExpr();
+        body.push(expr);
+      } else {
+        break;
+      }
     }
     // handling binary ops
     if (body.find((x) => x.type === 'Op')) {
@@ -220,6 +233,18 @@ class Parser {
     }
 
     return body;
+  }
+
+  isOperator(char) {
+    return OPERATORS.includes(char);
+  }
+
+  isExpr(char) {
+    return ['PUNC', 'STRING', 'NUMBER', 'OP', 'ID'].includes(char);
+  }
+
+  isPunc(char) {
+    return ['(', ')', '<', '>', '{', '}', ';', ',', '@', '='].includes(char);
   }
 
   expect(tokenType, tokenValue) {
@@ -247,6 +272,7 @@ class Parser {
     this.pos++;
     this.current = this.tokens[this.pos];
     this.previous = this.tokens[this.pos - 1];
+    console.log(`Eating ${current.value}`);
     return current;
   }
 
