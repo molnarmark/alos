@@ -38,6 +38,9 @@ class Parser {
 
   parseStatement() {
     switch (this.current.type) {
+      case 'EOF':
+        return { type: 'NoOp', value: null };
+
       case 'ID': {
         // variable definition
         if (this.current.value === 'let') {

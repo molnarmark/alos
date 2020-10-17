@@ -36,6 +36,8 @@ class Visitor {
         return this.visitBlock(astNode);
       case 'TopLevel':
         return this.visitTopLevel(astNode);
+      case 'NoOp':
+        return 0;
     }
 
     error(`Unable to handle AST Node of type: ${astNode.type}`);
