@@ -1,3 +1,5 @@
+const Token = require('./token');
+
 class Lexer {
   constructor(source) {
     this.source = source + '\0';
@@ -14,7 +16,7 @@ class Lexer {
       current = this.advance();
 
       if (this.isEof(current)) {
-        this.tokens.push({ type: 'EOF', value: '\0', line: this.line, col: this.col });
+        this.tokens.push(new Token('EOF', '\0', this.line, this.col));
         break;
       }
 
@@ -30,23 +32,23 @@ class Lexer {
         case ',':
         case '@':
         case '=':
-          this.tokens.push({ type: 'PUNC', value: current, line: this.line, col: this.col });
+          this.tokens.push(new Token('PUNC', current, this.line, this.col));
           continue;
 
         // Operators
         case '+':
         case '-':
           if (this.lookahead() === '>') {
-            this.tokens.push({ type: 'PUNC', value: '->', line: this.line, col: this.col });
+            this.tokens.push(new Token('PUNC', '->', this.line, this.col));
             this.advance();
           } else {
-            this.tokens.push({ type: 'OP', value: current, line: this.line, col: this.col });
+            this.tokens.push(new Token('OP', current, this.line, this.col));
           }
           continue;
         case '/':
         case '%':
         case '*':
-          this.tokens.push({ type: 'OP', value: current, line: this.line, col: this.col });
+          this.tokens.push(new Token('OP', current, this.line, this.col));
           continue;
       }
 
@@ -105,8 +107,7 @@ class Lexer {
     }
 
     const type = identifier.includes('@') ? 'BUILTIN_ID' : 'ID';
-
-    return { type, value: identifier.trim(), line: this.line, col: this.col };
+    return new Token(type, identifier.trim(), this.line, this.col);
   }
 
   readString() {
@@ -114,7 +115,8 @@ class Lexer {
     while (this.peek() !== '"') {
       str += this.advance();
     }
-    return { type: 'STRING', value: str.trim().replace('"', ''), line: this.line, col: this.col };
+
+    return new Token('STRING', str.trim().replace('"', ''), this.line, this.col);
   }
 
   readNumber(char) {
@@ -122,7 +124,8 @@ class Lexer {
     while (this.isNumber(this.lookahead()) || this.lookahead() === '.') {
       str += this.advance();
     }
-    return { type: 'NUMBER', value: str.trim().replace('"', ''), line: this.line, col: this.col };
+
+    return new Token('NUMBER', str.trim().replace('"', ''), this.line, this.col);
   }
 
   isEof(char) {
