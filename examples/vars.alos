@@ -2,6 +2,4 @@ let randomString = "Hello";
 let randomInt = 50;
 let calculation = 5 + 10 / 2;
 
-println(randomString);
-println(randomInt);
-println(calculation);
+@println(randomString, randomInt, calculation);

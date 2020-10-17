@@ -42,6 +42,16 @@ class Parser {
         return { type: 'NoOp', value: null };
 
       case 'ID': {
+        // module definition
+        if (this.current.value === 'module') {
+          return this.parseModuleDef();
+        }
+
+        // use statement
+        if (this.current.value === 'use') {
+          return this.parseUseStatement();
+        }
+
         // variable definition
         if (this.current.value === 'let') {
           return this.parseVariableDef();
@@ -58,7 +68,7 @@ class Parser {
         }
 
         // function definition
-        if (this.current.value === 'fun') {
+        if (this.current.value === 'sub') {
           return this.parseFunctionDef();
         }
 
@@ -72,26 +82,32 @@ class Parser {
         }
       }
       case 'PUNC': {
-        // load
-        if (this.current.value === '@') {
-          return this.parseLoad();
-        }
-
         // blocks
         if (this.current.value === '{') {
           return this.parseBlock();
         }
+
+        // builtin call
+        if (this.current.value === '@') {
+          return this.parseBuiltinFunctionCall();
+        }
       }
     }
   }
+  parseModuleDef() {
+    this.expect('ID', 'module');
+    const path = this.expect('ID').value;
+    this.expect('PUNC', ';');
 
-  parseLoad() {
-    this.expect('PUNC', '@');
-    this.expect('ID', 'load');
+    return { type: 'ModuleDef', value: path };
+  }
+
+  parseUseStatement() {
+    this.expect('ID', 'use');
     const path = this.expect('STRING').value;
     this.expect('PUNC', ';');
 
-    return { type: 'LoadStmt', value: path };
+    return { type: 'UseStmt', value: path };
   }
 
   parseReturn() {
@@ -141,7 +157,7 @@ class Parser {
 
     while (this.current.value !== ')') {
       const expr = this.parseExpr();
-      if (expr.value !== ',') {
+      if (expr) {
         params.push(expr);
       }
     }
@@ -152,6 +168,27 @@ class Parser {
     }
 
     return { type: 'FuncCall', name, value: { type: 'ArgList', value: params } };
+  }
+
+  parseBuiltinFunctionCall(asExpr = false) {
+    this.expect('PUNC', '@');
+    const name = this.expect('ID').value;
+    this.expect('PUNC', '(');
+    let params = [];
+
+    while (this.current.value !== ')') {
+      const expr = this.parseExpr();
+      if (expr) {
+        params.push(expr);
+      }
+    }
+
+    this.expect('PUNC', ')');
+    if (!asExpr) {
+      this.expect('PUNC', ';');
+    }
+
+    return { type: 'BuiltinFuncCall', name, value: { type: 'ArgList', value: params } };
   }
 
   parseFunctionDef() {

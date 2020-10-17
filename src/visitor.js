@@ -24,6 +24,8 @@ class Visitor {
         return this.visitFunctionDef(astNode);
       case 'FuncCall':
         return this.visitFunctionCall(astNode);
+      case 'BuiltinFuncCall':
+        return this.visitBuiltinFunctionCall(astNode);
       case 'String':
         return this.visitString(astNode);
       case 'Number':
@@ -34,6 +36,10 @@ class Visitor {
         return this.visitArgList(astNode);
       case 'Block':
         return this.visitBlock(astNode);
+      case 'ModuleDef':
+        return this.visitModuleDef(astNode);
+      case 'UseStmt':
+        return this.visitUseStmt(astNode);
       case 'TopLevel':
         return this.visitTopLevel(astNode);
       case 'NoOp':
@@ -60,6 +66,9 @@ class Visitor {
       this.visit(child);
     }
   }
+
+  visitUseStmt(astNode) {}
+  visitModuleDef(astNode) {}
 
   visitBinaryExpr(astNode) {
     return ipfix.calculate(astNode.value);
@@ -89,8 +98,9 @@ class Visitor {
   visitVar(astNode) {
     return this.scope[astNode.value].value;
   }
+  visitFunctionCall(astNode) {}
 
-  visitFunctionCall(astNode) {
+  visitBuiltinFunctionCall(astNode) {
     const arg = astNode.value.value.map((x) => this.visit(x));
     Builtins[astNode.name](arg);
   }
