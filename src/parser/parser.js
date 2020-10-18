@@ -1,7 +1,9 @@
 const ipfix = require('ipfix');
-const { error } = require('./reporter');
+const { error } = require('../reporter');
 
-const KEYWORDS = ['let', 'fixed'];
+const AST = require('./ast');
+const ASTNode = require('./node');
+
 const OPERATORS = ['+', '-', '/', '%'];
 
 class Parser {
@@ -13,14 +15,14 @@ class Parser {
   }
 
   parse() {
-    const topLevelNode = { type: 'TopLevel', children: [] };
+    const topLevelNode = new AST('TopLevel');
     const firstStatement = this.parseStatement();
-    topLevelNode.children.push(firstStatement);
+    topLevelNode.nodes.push(firstStatement);
 
     // Lets parse statements
     while (this.current.type !== 'EOF') {
       const astNode = this.parseStatement();
-      topLevelNode.children.push(astNode);
+      topLevelNode.nodes.push(astNode);
     }
 
     return topLevelNode;
@@ -39,7 +41,7 @@ class Parser {
   parseStatement() {
     switch (this.current.type) {
       case 'EOF':
-        return { type: 'NoOp', value: null };
+        return new ASTNode('NoOp');
 
       case 'ID': {
         // module definition
@@ -99,7 +101,7 @@ class Parser {
     const path = this.expect('ID').value;
     this.expect('PUNC', ';');
 
-    return { type: 'ModuleDef', value: path };
+    return new ASTNode('ModuleDef', path);
   }
 
   parseUseStatement() {
@@ -107,7 +109,7 @@ class Parser {
     const path = this.expect('STRING').value;
     this.expect('PUNC', ';');
 
-    return { type: 'UseStmt', value: path };
+    return new ASTNode('UseStmt', path);
   }
 
   parseReturn() {
@@ -115,7 +117,7 @@ class Parser {
     const expr = this.parseExpr();
     this.expect('PUNC', ';');
 
-    return { type: 'ReturnStmt', value: expr };
+    return new ASTNode('ReturnStmt', expr);
   }
 
   parseVariableDef() {
@@ -123,20 +125,18 @@ class Parser {
     const name = this.expect('ID').value;
     this.expect('PUNC', '=');
     const body = this.getBody();
-
     this.expect('PUNC', ';');
 
-    return { type: 'VarDef', name, value: body };
+    return new ASTNode('VarDef', body, name);
   }
 
   parseVariableAssignment() {
     const name = this.expect('ID').value;
     this.expect('PUNC', '=');
     const body = this.getBody();
-
     this.expect('PUNC', ';');
 
-    return { type: 'VarAssignment', name, value: body };
+    return new ASTNode('VarAssignment', body, name);
   }
 
   parseFixedVariableDef() {
@@ -144,10 +144,9 @@ class Parser {
     const name = this.expect('ID').value;
     this.expect('PUNC', '=');
     const body = this.getBody();
-
     this.expect('PUNC', ';');
 
-    return { type: 'FixedVarDef', name, value: body };
+    return new ASTNode('FixedVarDef', body, name);
   }
 
   parseFunctionCall(asExpr = false) {
@@ -167,7 +166,8 @@ class Parser {
       this.expect('PUNC', ';');
     }
 
-    return { type: 'FuncCall', name, value: { type: 'ArgList', value: params } };
+    const argList = new ASTNode('ArgList', params);
+    return new ASTNode('FuncCall', argList, name);
   }
 
   parseBuiltinFunctionCall(asExpr = false) {
@@ -188,7 +188,8 @@ class Parser {
       this.expect('PUNC', ';');
     }
 
-    return { type: 'BuiltinFuncCall', name, value: { type: 'ArgList', value: params } };
+    const argList = new ASTNode('ArgList', params);
+    return new ASTNode('BuiltinFuncCall', argList, name);
   }
 
   parseFunctionDef() {
@@ -204,10 +205,10 @@ class Parser {
       }
     }
 
+    // TODO make use of parseBlock here
     this.expect('PUNC', ')');
     this.expect('PUNC', '->');
     const isArrow = this.expect('PUNC', '{', true) ? false : true;
-    console.log(isArrow);
     let body = isArrow ? this.parseExpr() : this.parseStatements();
     this.expect('PUNC', '}', true);
     if (isArrow) {
@@ -215,7 +216,8 @@ class Parser {
       body = [{ type: 'ReturnStmt', value: body }];
     }
 
-    return { type: 'FuncDef', name, args, value: { type: 'Block', value: body } };
+    const block = new ASTNode('Block', body);
+    return new ASTNode('FuncDef', block, name, args);
   }
 
   parseBlock() {
@@ -223,7 +225,7 @@ class Parser {
     const body = this.parseStatements();
     this.expect('PUNC', '}');
 
-    return { type: 'Block', value: body };
+    return new ASTNode('Block', body);
   }
 
   parseExpr() {
@@ -234,20 +236,20 @@ class Parser {
         break;
 
       case 'STRING':
-        return { type: 'String', value: this.advance().value };
+        return new ASTNode('String', this.advance().value);
 
       case 'NUMBER':
-        return { type: 'Number', value: parseFloat(this.advance().value) };
+        return new ASTNode('Number', parseFloat(this.advance().value));
 
       case 'OP':
-        return { type: 'Op', value: this.advance().value };
+        return new ASTNode('Op', this.advance().value);
 
       case 'ID':
         // variable definitions for example can contain a function call
         if (this.peek().value === '(') {
           return this.parseFunctionCall(true);
         } else {
-          return { type: 'Variable', value: this.advance().value };
+          return new ASTNode('Variable', this.advance().value);
         }
     }
   }
@@ -259,7 +261,8 @@ class Parser {
       exprs.push(this.parseExpr());
     }
     this.expect('PUNC', ')');
-    return { type: 'GroupedExpr', value: exprs };
+
+    return new ASTNode('GroupedExpr', exprs);
   }
 
   getBody() {
@@ -278,7 +281,7 @@ class Parser {
     }
     // handling binary ops
     if (body.find((x) => x.type === 'Op')) {
-      body = { type: 'BinaryExpr', value: ipfix.transform(body.map((x) => x.value).join('')) };
+      body = new ASTNode('BinaryExpr', ipfix.transform(body.map((x) => x.value).join('')));
     }
 
     if (body.length === 1) {
@@ -325,7 +328,7 @@ class Parser {
     this.pos++;
     this.current = this.tokens[this.pos];
     this.previous = this.tokens[this.pos - 1];
-    console.log(`Eating ${current.value}`);
+    // console.log(`Eating ${current.value}`);
     return current;
   }
 
