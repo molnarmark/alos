@@ -1,9 +1,9 @@
 const ipfix = require('ipfix');
 
-const Builtins = require('./builtins');
-const { error } = require('./reporter');
+const Builtins = require('../builtins');
+const { error } = require('../reporter');
 
-class Visitor {
+class Evaluator {
   constructor() {
     // temporary scope
     this.scope = {};
@@ -11,6 +11,8 @@ class Visitor {
 
   visit(astNode) {
     // console.log('Visiting', astNode.type);
+    // if (!astNode.type) return null;
+
     switch (astNode.type) {
       case 'VarDef':
         return this.visitVarDef(astNode);
@@ -46,11 +48,11 @@ class Visitor {
         return 0;
     }
 
-    error(`Unable to handle AST Node of type: ${astNode.type}`);
+    error(`Unable to handle AST Node of type: ${astNode.type} ${astNode.value}`);
   }
 
   visitTopLevel(astNode) {
-    for (let child of astNode.children) {
+    for (let child of astNode.nodes) {
       this.visit(child);
     }
   }
@@ -116,4 +118,4 @@ class Visitor {
   }
 }
 
-module.exports = Visitor;
+module.exports = Evaluator;

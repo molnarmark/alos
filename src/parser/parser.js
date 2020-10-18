@@ -4,7 +4,6 @@ const { error } = require('../reporter');
 const AST = require('./ast');
 const ASTNode = require('./node');
 
-const KEYWORDS = ['let', 'fixed'];
 const OPERATORS = ['+', '-', '/', '%'];
 
 class Parser {
@@ -42,7 +41,7 @@ class Parser {
   parseStatement() {
     switch (this.current.type) {
       case 'EOF':
-        return { type: 'NoOp', value: null };
+        return new ASTNode('NoOp');
 
       case 'ID': {
         // module definition
@@ -126,7 +125,6 @@ class Parser {
     const name = this.expect('ID').value;
     this.expect('PUNC', '=');
     const body = this.getBody();
-
     this.expect('PUNC', ';');
 
     return new ASTNode('VarDef', body, name);
@@ -136,7 +134,6 @@ class Parser {
     const name = this.expect('ID').value;
     this.expect('PUNC', '=');
     const body = this.getBody();
-
     this.expect('PUNC', ';');
 
     return new ASTNode('VarAssignment', body, name);
@@ -147,7 +144,6 @@ class Parser {
     const name = this.expect('ID').value;
     this.expect('PUNC', '=');
     const body = this.getBody();
-
     this.expect('PUNC', ';');
 
     return new ASTNode('FixedVarDef', body, name);
@@ -332,7 +328,7 @@ class Parser {
     this.pos++;
     this.current = this.tokens[this.pos];
     this.previous = this.tokens[this.pos - 1];
-    console.log(`Eating ${current.value}`);
+    // console.log(`Eating ${current.value}`);
     return current;
   }
 

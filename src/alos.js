@@ -1,7 +1,7 @@
 const readFileSync = require('fs').readFileSync;
 const Lexer = require('./lexer/lexer');
 const Parser = require('./parser/parser');
-const Visitor = require('./visitor');
+const Evaluator = require('./eval/evaluator');
 const util = require('util');
 
 function main() {
@@ -24,8 +24,8 @@ function main() {
   console.log(util.inspect(ast, { colors: true, depth: 999 }));
   console.log('\n------------------\n');
 
-  // const visitor = new Visitor();
-  // visitor.visit(ast);
+  const eval = new Evaluator();
+  eval.visitTopLevel(ast);
 }
 
 main();
