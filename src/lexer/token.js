@@ -3,7 +3,7 @@ class Token {
     this.type = type;
     this.value = value;
     this.line = line;
-    this.col = col;
+    this.col = col - value.length;
   }
 }
 

@@ -1,6 +1,6 @@
 const readFileSync = require('fs').readFileSync;
 const Lexer = require('./lexer/lexer');
-const Parser = require('./parser');
+const Parser = require('./parser/parser');
 const Visitor = require('./visitor');
 const util = require('util');
 
@@ -17,13 +17,12 @@ function main() {
 
   const lexer = new Lexer(testFile);
   const tokens = lexer.lex();
-  console.log(tokens);
-  process.exit(0);
-  // const parser = new Parser(tokens);
-  // const ast = parser.parse();
 
-  // console.log(util.inspect(ast, { colors: true, depth: 999 }));
-  // console.log('\n------------------\n');
+  const parser = new Parser(tokens);
+  const ast = parser.parse();
+
+  console.log(util.inspect(ast, { colors: true, depth: 999 }));
+  console.log('\n------------------\n');
 
   // const visitor = new Visitor();
   // visitor.visit(ast);

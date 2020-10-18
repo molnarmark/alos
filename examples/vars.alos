@@ -1,5 +1,5 @@
-let randomString = "Hello";
+let randomString = "Hello Someone";
 let randomInt = 50;
-let calculation = 5 + 10 / 2;
+let calculation = 5 + 10 / 2 % 5 * 76767;
 
-@println(randomString, randomInt, calculation);
+@println(calculation);

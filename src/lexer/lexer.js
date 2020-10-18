@@ -83,6 +83,7 @@ class Lexer {
       this.col = 1;
     } else {
       this.col++;
+      // this.col += this.tokens.length !== 0 ? this.tokens.pop().value.length : 1;
     }
 
     return nextChar;
