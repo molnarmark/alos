@@ -4,7 +4,7 @@ module main;
 use "folder/file";
 
 let a = "Random string";
-fixed b = "Random string";
+fixed b = "Random fixed string";
 
 # Builtins get called with @
 @println(a, b);
@@ -14,3 +14,5 @@ sub blockSub(a, b) -> {
 }
 
 sub arrowSub(a, b) -> 1;
+
+blockSub(a, b);
