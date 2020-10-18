@@ -1,4 +1,4 @@
-# Alos Progrmaming Language
+# Alos Programming Language
 
 ## The Plan
 
