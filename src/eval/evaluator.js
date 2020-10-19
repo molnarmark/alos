@@ -84,17 +84,14 @@ class Evaluator {
   }
 
   visitFixedVarDef(astNode) {
-    this.scope[astNode.name] = {
-      value: this.visit(astNode.value),
-      fixed: true,
-    };
+    this.currentScope.addVar(astNode, true);
   }
 
   visitVarAssignment(astNode) {
-    if (this.scope[astNode.name].fixed === true) {
-      error(`Assignment to fixed variable: ${astNode.name}`);
+    const success = this.currentScope.setVar(astNode);
+    if (!success) {
+      error(`Trying to set fixed variable \`${astNode.name}\``);
     }
-    this.scope[astNode.name].value = this.visit(astNode.value);
   }
 
   visitVar(astNode) {
@@ -163,17 +160,11 @@ class Evaluator {
   }
 
   lookupVar(name) {
-    const varExistsInCurrentScope = this.currentScope.getVar(name);
+    const foundVar = this.currentScope.getVar(name);
 
-    if (!varExistsInCurrentScope) {
-      for (let scope of [...this.scopes].reverse()) {
-        if (scope.getVar(name)) {
-          return scope.getVar(name);
-        }
-      }
-    } else {
-      return this.currentScope.getVar(name);
-    }
+    return foundVar
+      ? foundVar
+      : [...this.scopes].reverse().filter((x) => (x.getVar(name) ? x.getVar(name) : null))[0];
   }
 }
 

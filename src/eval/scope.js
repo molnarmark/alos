@@ -2,10 +2,24 @@ class Scope {
   constructor() {
     this.vars = new Map();
     this.subs = new Map();
+    this.fixedVars = [];
   }
 
-  addVar(node) {
+  addVar(node, fixed) {
     this.vars.set(node.name, node);
+
+    if (fixed) {
+      this.fixedVars.push(node.name);
+    }
+  }
+
+  setVar(node) {
+    if (this.fixedVars.includes(node.name)) {
+      return false;
+    }
+
+    this.vars.set(node.name, node);
+    return true;
   }
 
   addSub(node) {

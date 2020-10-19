@@ -1,5 +1,8 @@
 let randomString = "Hello Someone";
-let randomInt = 50;
-let calculation = 5 + 10 / 2 % 5 * 76767;
+@println(randomString);
+randomString = "hello";
+@println(randomString);
 
-@println(calculation);
+fixed something = "this is fixed";
+@println(something);
+something = "a";
