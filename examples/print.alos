@@ -1,3 +1,2 @@
 @println("Hello World.");
 @println("Multiple", "arguments", "printed");
-@print("Hello World.");
