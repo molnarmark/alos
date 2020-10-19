@@ -5,8 +5,8 @@ const Evaluator = require('./eval/evaluator');
 const util = require('util');
 const path = require('path');
 
-function main() {
-  let testFile = readFileSync(`./examples/${process.argv[2]}`).toString();
+function run(filePath) {
+  let testFile = readFileSync(filePath).toString();
 
   // Removing comments from file
   // In no way is this optional
@@ -30,13 +30,11 @@ function main() {
   const parser = new Parser(tokens);
   const ast = parser.parse();
 
-  console.log(util.inspect(ast, { colors: true, depth: 999 }));
-  console.log('\n------------------\n');
+  // console.log(util.inspect(ast, { colors: true, depth: 999 }));
+  // console.log('\n------------------\n');
 
   const eval = new Evaluator();
-  eval.visitTopLevel(ast);
-
-  // console.log(eval.currentScope);
+  return eval.visitTopLevel(ast);
 }
 
-main();
+module.exports = run;

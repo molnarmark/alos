@@ -7,7 +7,7 @@
     "example": "examples"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
   "repository": {
     "type": "git",
@@ -20,10 +20,12 @@
   },
   "homepage": "https://github.com/molnarmark/alos#readme",
   "devDependencies": {
+    "jest": "^26.6.0",
     "prettier": "^2.1.2"
   },
   "dependencies": {
     "chalk": "^4.1.0",
-    "ipfix": "^1.0.1"
+    "ipfix": "^1.0.1",
+    "minimist": "^1.2.5"
   }
 }
