@@ -1,4 +1,6 @@
 {
-  println("hello");
-  println("world");
+  let hello = "World";
+  @println(hello);
 }
+
+@println(hello);

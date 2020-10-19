@@ -216,8 +216,7 @@ class Parser {
       body = [{ type: 'ReturnStmt', value: body }];
     }
 
-    const block = new ASTNode('Block', body);
-    return new ASTNode('FuncDef', block, name, args);
+    return new ASTNode('FuncDef', body, name, args);
   }
 
   parseBlock() {

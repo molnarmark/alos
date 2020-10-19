@@ -1,7 +1,4 @@
-sub hello() -> {
-  @println("hello");
-}
+let a = 10;
+let b = 5 + 10 + a;
 
-{
-  @println("hello from block");
-}
+@println(b);
