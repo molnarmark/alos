@@ -30,7 +30,7 @@ class Parser {
 
   parseStatements() {
     const statements = [];
-    while (this.current.type !== 'PUNC' && this.current.value !== '}') {
+    while (this.current.value !== '}') {
       const statement = this.parseStatement();
       statements.push(statement);
     }

@@ -1,0 +1,7 @@
+sub hello() -> {
+  @println("hello");
+}
+
+{
+  @println("hello from block");
+}

@@ -14,7 +14,6 @@ function main() {
       testFile = testFile.replace(line, '');
     }
   }
-
   const lexer = new Lexer(testFile);
   const tokens = lexer.lex();
 
