@@ -122,7 +122,7 @@ class Evaluator {
   }
 
   visitBuiltinFunctionCall(astNode) {
-    const arg = astNode.value.value.map((x) => this.visit(x));
+    const arg = astNode.value.value.map(x => this.visit(x));
     Builtins[astNode.name](arg);
   }
 
@@ -164,7 +164,7 @@ class Evaluator {
 
     return foundVar
       ? foundVar
-      : [...this.scopes].reverse().filter((x) => (x.getVar(name) ? x.getVar(name) : null))[0];
+      : [...this.scopes].reverse().filter(x => (x.getVar(name) ? x.getVar(name) : null))[0];
   }
 }
 

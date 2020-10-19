@@ -279,8 +279,8 @@ class Parser {
       }
     }
     // handling binary ops
-    if (body.find((x) => x.type === 'Op')) {
-      body = new ASTNode('BinaryExpr', ipfix.transform(body.map((x) => x.value).join('')));
+    if (body.find(x => x.type === 'Op')) {
+      body = new ASTNode('BinaryExpr', ipfix.transform(body.map(x => x.value).join('')));
     }
 
     if (body.length === 1) {

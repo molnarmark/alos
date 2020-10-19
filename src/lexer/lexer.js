@@ -72,7 +72,7 @@ class Lexer {
       }
     }
 
-    return this.tokens.filter((x) => x.value.length > 0);
+    return this.tokens.filter(x => x.value.length > 0);
   }
 
   advance() {
