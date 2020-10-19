@@ -142,7 +142,7 @@ class Lexer {
   }
 
   isLetter(char) {
-    return /[a-z]/i.test(char);
+    return /[a-z]|\_/i.test(char);
   }
 }
 

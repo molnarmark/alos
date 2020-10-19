@@ -1,16 +1,20 @@
 const ipfix = require('ipfix');
 
 const Builtins = require('../builtins');
-const { error } = require('../reporter');
+const { error, debug } = require('../reporter');
+
+const Scope = require('./scope');
+const ASTNode = require('../parser/node');
 
 class Evaluator {
   constructor() {
-    // temporary scope
-    this.scope = {};
+    // first is the global scope
+    this.scopes = [new Scope()];
+    this.currentScope = this.scopes[0];
   }
 
   visit(astNode) {
-    // console.log('Visiting', astNode.type);
+    // debug('Visiting', astNode.type);
     // if (!astNode.type) return null;
 
     switch (astNode.type) {
@@ -42,6 +46,8 @@ class Evaluator {
         return this.visitModuleDef(astNode);
       case 'UseStmt':
         return this.visitUseStmt(astNode);
+      case 'ReturnStmt':
+        return this.visit(astNode.value);
       case 'TopLevel':
         return this.visitTopLevel(astNode);
       case 'NoOp':
@@ -77,10 +83,7 @@ class Evaluator {
   }
 
   visitVarDef(astNode) {
-    this.scope[astNode.name] = {
-      value: this.visit(astNode.value),
-      fixed: false,
-    };
+    this.currentScope.addVar(astNode);
   }
 
   visitFixedVarDef(astNode) {
@@ -98,16 +101,40 @@ class Evaluator {
   }
 
   visitVar(astNode) {
-    return this.scope[astNode.value].value;
+    const variable = this.lookupVar(astNode.value);
+    if (!variable) {
+      error(`Undefined variable \`${astNode.value}\``);
+    }
+    return this.visit(variable.value);
   }
-  visitFunctionCall(astNode) {}
+
+  visitFunctionCall(astNode) {
+    const funcDef = this.currentScope.getSub(astNode.name);
+    this.pushScope();
+
+    for (let i in funcDef.args) {
+      this.currentScope.addVar(
+        new ASTNode('VarDef', astNode.value.value[i], funcDef.args[i].value)
+      );
+    }
+
+    let returnVal;
+    for (let value of funcDef.value) {
+      returnVal = this.visit(value);
+    }
+
+    this.popScope();
+    return returnVal;
+  }
 
   visitBuiltinFunctionCall(astNode) {
     const arg = astNode.value.value.map((x) => this.visit(x));
     Builtins[astNode.name](arg);
   }
 
-  visitFunctionDef(astNode) {}
+  visitFunctionDef(astNode) {
+    this.currentScope.addSub(astNode);
+  }
 
   visitString(astNode) {
     return astNode.value;
@@ -115,6 +142,41 @@ class Evaluator {
 
   visitNumber(astNode) {
     return astNode.value;
+  }
+
+  getCurrentScope() {
+    return this.currentScope;
+  }
+
+  getScopes() {
+    return this.scopes;
+  }
+
+  pushScope() {
+    this.scopes.push(new Scope());
+    this.currentScope = this.scopes[this.scopes.length - 1];
+    debug('Created new scope');
+  }
+
+  popScope() {
+    debug('Popped top scope. Current scope length:' + this.scopes.length);
+    this.scopes.pop();
+
+    this.currentScope = this.scopes[this.scopes.length - 1];
+  }
+
+  lookupVar(name) {
+    const varExistsInCurrentScope = this.currentScope.getVar(name);
+
+    if (!varExistsInCurrentScope) {
+      for (let scope of [...this.scopes].reverse()) {
+        if (scope.getVar(name)) {
+          return scope.getVar(name);
+        }
+      }
+    } else {
+      return this.currentScope.getVar(name);
+    }
   }
 }
 
