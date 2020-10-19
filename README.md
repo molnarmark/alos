@@ -48,6 +48,7 @@ blockSub(a, b);
 
 ### Evaluator / Interpreter
 
-- [ ] Scopes
-- [ ] Function calls
+- [x] Scopes
+- [x] Function calls
+- [x] Function argument passing
 - [ ] Module loading, namespaces
