@@ -44,8 +44,6 @@ class Evaluator {
         return this.visitBlock(astNode);
       case 'ModuleDef':
         return this.visitModuleDef(astNode);
-      case 'UseStmt':
-        return this.visitUseStmt(astNode);
       case 'ReturnStmt':
         return this.visit(astNode.value);
       case 'TopLevel':
@@ -75,7 +73,6 @@ class Evaluator {
     }
   }
 
-  visitUseStmt(astNode) {}
   visitModuleDef(astNode) {}
 
   visitBinaryExpr(astNode) {
