@@ -1,1 +1,5 @@
-let value = "Teszt";
+let value = "Test";
+
+if (value == "Test") -> {
+  @println("value is eq to Test");
+}

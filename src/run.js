@@ -26,12 +26,13 @@ function run(filePath) {
 
   const lexer = new Lexer(testFile);
   const tokens = lexer.lex();
-
+  // console.log(tokens);
+  // process.exit(0);
   const parser = new Parser(tokens);
   const ast = parser.parse();
 
-  // console.log(util.inspect(ast, { colors: true, depth: 999 }));
-  // console.log('\n------------------\n');
+  console.log(util.inspect(ast, { colors: true, depth: 999 }));
+  console.log('\n------------------\n');
 
   const eval = new Evaluator();
   return eval.visitTopLevel(ast);

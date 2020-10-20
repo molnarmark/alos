@@ -65,8 +65,13 @@ class Parser {
         }
 
         // function call
-        if (this.peek().value === '(') {
+        if (this.current.value !== 'if' && this.peek().value === '(') {
           return this.parseFunctionCall();
+        }
+
+        // if statement
+        if (this.current.value === 'if' && this.peek().value === '(') {
+          return this.parseIfStatement();
         }
 
         // function definition
@@ -96,6 +101,31 @@ class Parser {
       }
     }
   }
+
+  parseIfStatement() {
+    this.expect('ID', 'if');
+    const expr = this.parseGroupedExpr();
+    this.expect('PUNC', '->');
+    const body = this.parseBlock();
+    let elseEnd;
+
+    if (this.current.value === 'else') {
+      this.advance();
+      this.expect('PUNC', '->');
+      elseEnd = this.parseBlock();
+    }
+
+    const value = {
+      if: { expr, body },
+    };
+
+    if (elseEnd) {
+      value.else = { expr: elseEnd };
+    }
+
+    return new ASTNode('IfStatement', value);
+  }
+
   parseModuleDef() {
     this.expect('ID', 'module');
     const path = this.expect('ID').value;

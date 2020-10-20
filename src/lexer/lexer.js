@@ -32,7 +32,12 @@ class Lexer {
         case ',':
         case '@':
         case '=':
-          this.tokens.push(new Token('PUNC', current, this.line, this.col));
+          if (this.lookahead() === '=') {
+            this.tokens.push(new Token('PUNC', '==', this.line, this.col));
+            this.advance();
+          } else {
+            this.tokens.push(new Token('PUNC', current, this.line, this.col));
+          }
           continue;
 
         // Operators

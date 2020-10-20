@@ -27,5 +27,7 @@ const showHelp = () => console.log(help);
   switch (_[0]) {
     case "run":
       return run(path.resolve(process.cwd(), _[1]));
+    case "help":
+      return showHelp();
   }
 })();
